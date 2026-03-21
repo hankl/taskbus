@@ -1,17 +1,10 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
+import { Command } from "commander";
 
 const baseUrl = process.env.TASKBUS_BASE_URL || "http://localhost:3000";
 const apiKey = process.env.TASKBUS_API_KEY || "";
-
-function printUsage() {
-  console.error(`Usage:
-  taskbus create <jsonFile>
-  taskbus get <id>
-  taskbus claim --executor <name>
-  taskbus done <id>`);
-}
 
 function getHeaders() {
   const headers = {
@@ -54,85 +47,78 @@ async function requestJson(path, init = {}) {
   return data;
 }
 
-function parseClaimExecutor(args) {
-  const index = args.indexOf("--executor");
-  if (index === -1 || !args[index + 1]) {
-    throw new Error("Missing --executor <name>");
-  }
-  return args[index + 1];
-}
-
-async function main() {
-  const [, , command, ...args] = process.argv;
-
-  if (!command) {
-    printUsage();
-    process.exitCode = 1;
+function printJson(result) {
+  if (result === null) {
+    console.log("null");
     return;
   }
 
+  console.log(JSON.stringify(result, null, 2));
+}
+
+const program = new Command();
+
+program
+  .name("taskbus")
+  .description("AI Agent 任务总线命令行工具")
+  .helpOption("-h, --help", "显示帮助信息")
+  .addHelpCommand("help [command]", "显示指定命令的帮助信息");
+
+program
+  .command("create")
+  .description("创建任务，读取本地 JSON 文件并提交到 TaskBus")
+  .argument("<jsonFile>", "本地 JSON 文件路径，内容需包含 name、fileId、executor、creator")
+  .action(async (jsonFile) => {
+    const payload = await readJsonFile(jsonFile);
+    const result = await requestJson("/api/tasks", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    printJson(result);
+  });
+
+program
+  .command("get")
+  .description("获取单个任务详情")
+  .argument("<id>", "任务 ID")
+  .action(async (id) => {
+    const result = await requestJson(`/api/tasks/${id}`);
+    printJson(result);
+  });
+
+program
+  .command("claim")
+  .description("领取指定 executor 的最旧 pending 任务")
+  .requiredOption("-e, --executor <name>", "executor 名称，只会领取分配给该 executor 的最旧 pending 任务")
+  .action(async (options) => {
+    const result = await requestJson("/api/tasks/claim", {
+      method: "POST",
+      body: JSON.stringify({ executor: options.executor })
+    });
+    printJson(result);
+  });
+
+program
+  .command("done")
+  .description("将 running 状态的任务标记为 done")
+  .argument("<id>", "任务 ID，只允许 running 状态")
+  .action(async (id) => {
+    const result = await requestJson(`/api/tasks/${id}/done`, {
+      method: "POST",
+      body: JSON.stringify({})
+    });
+    printJson(result);
+  });
+
+program.showHelpAfterError("(使用 --help 查看命令帮助)");
+
+async function main() {
   try {
-    if (command === "create") {
-      const jsonFile = args[0];
-      if (!jsonFile) {
-        throw new Error("Missing json file path");
-      }
-
-      const payload = await readJsonFile(jsonFile);
-      const result = await requestJson("/api/tasks", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      console.log(JSON.stringify(result, null, 2));
-      return;
-    }
-
-    if (command === "get") {
-      const id = args[0];
-      if (!id) {
-        throw new Error("Missing task id");
-      }
-
-      const result = await requestJson(`/api/tasks/${id}`);
-      console.log(JSON.stringify(result, null, 2));
-      return;
-    }
-
-    if (command === "claim") {
-      const executor = parseClaimExecutor(args);
-      const result = await requestJson("/api/tasks/claim", {
-        method: "POST",
-        body: JSON.stringify({ executor })
-      });
-
-      if (!result) {
-        console.log("null");
-        return;
-      }
-
-      console.log(JSON.stringify(result, null, 2));
-      return;
-    }
-
-    if (command === "done") {
-      const id = args[0];
-      if (!id) {
-        throw new Error("Missing task id");
-      }
-
-      const result = await requestJson(`/api/tasks/${id}/done`, {
-        method: "POST",
-        body: JSON.stringify({})
-      });
-      console.log(JSON.stringify(result, null, 2));
-      return;
-    }
-
-    throw new Error(`Unknown command: ${command}`);
+    await program.parseAsync(process.argv);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
   }
 }
 
-await main();
+void main();
