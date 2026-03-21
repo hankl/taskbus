@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  pending
+  running
+  done
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  name        String
+  fileId      Int
+  status      TaskStatus @default(pending)
+  executor    String
+  creator     String
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([executor, status, createdAt])
+  @@index([status, createdAt])
+  @@index([creator, createdAt])
+}
+
