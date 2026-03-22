@@ -19,8 +19,9 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "prebuild": "prisma generate",
     "build": "next build",
-    "build:cli": "node ./scripts/build-cli.mjs",
+    "prestart": "prisma generate",
     "start": "next start",
     "link:global": "npm link",
     "lint": "next lint",
