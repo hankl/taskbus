@@ -7,7 +7,7 @@ export async function createTask(input: CreateTaskInput) {
   return prisma.task.create({
     data: {
       name: input.name,
-      fileId: input.fileId,
+      fileUrl: input.fileUrl,
       executor: input.executor,
       creator: input.creator
     }
@@ -115,4 +115,3 @@ export async function markTaskDone(id: number) {
     return { type: "ok" as const, task: updated };
   });
 }
-

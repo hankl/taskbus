@@ -11,17 +11,22 @@ const entryFile = resolve(projectRoot, "cli", "taskbus.mjs");
 const distDir = resolve(projectRoot, "dist");
 const bundleFile = resolve(distDir, "taskbus.bundle.js");
 
+const defaultTargets = ["node18-win-x64", "node18-linux-x64", "node18-macos-x64"];
+
 function parseArgs(argv) {
   const result = {
-    target: "node18-win-x64",
-    output: resolve(distDir, "taskbus.exe")
+    targets: [...defaultTargets],
+    output: null
   };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
 
     if (arg === "--target" && argv[index + 1]) {
-      result.target = argv[index + 1];
+      result.targets = argv[index + 1]
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
       index += 1;
       continue;
     }
@@ -33,6 +38,19 @@ function parseArgs(argv) {
   }
 
   return result;
+}
+
+function getOutputFile(target, explicitOutput) {
+  if (explicitOutput) {
+    return explicitOutput;
+  }
+
+  const parts = target.split("-");
+  const platform = parts[1];
+  const arch = parts[2];
+  const extension = platform === "win" ? ".exe" : "";
+
+  return resolve(distDir, `taskbus-${platform}-${arch}${extension}`);
 }
 
 function run(command, args) {
@@ -60,7 +78,6 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
 
   await mkdir(distDir, { recursive: true });
-  await mkdir(dirname(options.output), { recursive: true });
 
   await build({
     entryPoints: [entryFile],
@@ -71,9 +88,12 @@ async function main() {
     target: "node20"
   });
 
-  await run("npx", ["pkg", bundleFile, "--targets", options.target, "--output", options.output]);
-
-  console.log(`Standalone CLI generated: ${options.output}`);
+  for (const target of options.targets) {
+    const outputFile = getOutputFile(target, options.output);
+    await mkdir(dirname(outputFile), { recursive: true });
+    await run("npx", ["pkg", bundleFile, "--targets", target, "--output", outputFile]);
+    console.log(`Standalone CLI generated: ${outputFile}`);
+  }
 }
 
 await main();

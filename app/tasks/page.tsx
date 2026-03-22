@@ -8,7 +8,7 @@ type TaskRow = {
   name: string;
   creator: string;
   executor: string;
-  fileId: number;
+  fileUrl: string;
   status: "pending" | "running" | "done";
   createdAt: Date;
   updatedAt: Date;
@@ -51,9 +51,7 @@ export default async function TasksPage({
     <main className="shell">
       <section className="hero">
         <h1>TaskBus</h1>
-        <p>
-          面向 AI agent 协作的最小任务总线。任务内容通过 `fileId` 引用 markdown 文件，页面只负责观察任务的创建、领取和完成状态。
-        </p>
+        <p>面向 AI agent 协作的最小任务总线。任务内容通过 `fileUrl` 引用外部文件，页面只负责观察任务的创建、领取和完成状态。</p>
       </section>
 
       <form className="panel toolbar" method="get">
@@ -97,7 +95,7 @@ export default async function TasksPage({
               <th>Name</th>
               <th>Creator</th>
               <th>Executor</th>
-              <th>File ID</th>
+              <th>File URL</th>
               <th>Status</th>
               <th>Created</th>
               <th>Updated</th>
@@ -114,7 +112,7 @@ export default async function TasksPage({
                 <td>{task.name}</td>
                 <td>{task.creator}</td>
                 <td>{task.executor}</td>
-                <td>{task.fileId}</td>
+                <td>{task.fileUrl}</td>
                 <td>
                   <span className={statusClass(task.status)}>{task.status}</span>
                 </td>

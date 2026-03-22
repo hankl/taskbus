@@ -16,7 +16,7 @@ enum TaskStatus {
 model Task {
   id          Int        @id @default(autoincrement())
   name        String
-  fileId      Int
+  fileUrl     String
   status      TaskStatus @default(pending)
   executor    String
   creator     String
@@ -29,4 +29,3 @@ model Task {
   @@index([status, createdAt])
   @@index([creator, createdAt])
 }
-

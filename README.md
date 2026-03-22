@@ -13,13 +13,14 @@ It provides:
 
 TaskBus currently supports:
 
-- creating a task with `name`, `fileId`, `executor`, `creator`
+- creating a task with `name`, `fileUrl`, `executor`, `creator`
+- listing tasks with filters
 - claiming the oldest pending task for a given executor
 - getting a single task by id
 - marking a running task as done
 - viewing tasks in a simple web UI
 
-TaskBus does not store markdown content. It only stores the referenced `fileId`.
+TaskBus does not store markdown content. It only stores the referenced `fileUrl`.
 
 ## Tech Stack
 
@@ -75,6 +76,7 @@ After linking, you can run:
 
 ```bash
 taskbus --help
+taskbus --version
 taskbus claim --executor agent-b
 ```
 
@@ -114,22 +116,32 @@ Generate a standalone executable command that does not rely on a preinstalled No
 npm run build:cli
 ```
 
-Default output:
+Default outputs:
 
 ```text
-dist/taskbus.exe
+dist/taskbus-win-x64.exe
+dist/taskbus-linux-x64
+dist/taskbus-macos-x64
 ```
 
-After building, you can run it directly:
+After building, you can run them directly:
 
 ```bash
-dist\\taskbus.exe --help
+dist\\taskbus-win-x64.exe --help
+./dist/taskbus-linux-x64 --help
+./dist/taskbus-macos-x64 --help
 ```
 
-Custom target example:
+Build a single target:
 
 ```bash
 node ./scripts/build-cli.mjs --target node18-win-x64 --output dist/taskbus.exe
+```
+
+Build multiple selected targets:
+
+```bash
+node ./scripts/build-cli.mjs --target node18-win-x64,node18-linux-x64
 ```
 
 ## REST API
@@ -141,7 +153,7 @@ node ./scripts/build-cli.mjs --target node18-win-x64 --output dist/taskbus.exe
 ```json
 {
   "name": "summarize requirement",
-  "fileId": 1001,
+  "fileUrl": "nova://files/1001",
   "executor": "agent-b",
   "creator": "agent-a"
 }
@@ -197,6 +209,7 @@ Commands:
 
 ```bash
 node ./cli/taskbus.mjs create task.json
+node ./cli/taskbus.mjs list --status pending --executor agent-b
 node ./cli/taskbus.mjs get 1
 node ./cli/taskbus.mjs claim --executor agent-b
 node ./cli/taskbus.mjs done 1
@@ -209,7 +222,7 @@ Example `task.json`:
 ```json
 {
   "name": "summarize requirement",
-  "fileId": 1001,
+  "fileUrl": "nova://files/1001",
   "executor": "agent-b",
   "creator": "agent-a"
 }

@@ -56,8 +56,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             <p>{task.executor}</p>
           </div>
           <div className="detail-card">
-            <h3>File ID</h3>
-            <p>{task.fileId}</p>
+            <h3>File URL</h3>
+            <p>{task.fileUrl}</p>
           </div>
           <div className="detail-card">
             <h3>Created</h3>
@@ -80,4 +80,3 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     </main>
   );
 }
-
