@@ -14,9 +14,9 @@ export const claimTaskSchema = z.object({
 });
 
 export const listTasksSchema = z.object({
-  executor: z.string().trim().min(1).max(128).optional(),
-  creator: z.string().trim().min(1).max(128).optional(),
-  status: taskStatusSchema.optional(),
+  executor: z.string().trim().max(128).optional().catch(undefined),
+  creator: z.string().trim().max(128).optional().catch(undefined),
+  status: taskStatusSchema.optional().or(z.literal("").transform(() => undefined as never)),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20)
 });

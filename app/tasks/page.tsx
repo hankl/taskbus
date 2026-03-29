@@ -38,11 +38,11 @@ export default async function TasksPage({
 }) {
   const rawSearchParams = await searchParams;
   const parsed = listTasksSchema.parse({
-    executor: typeof rawSearchParams.executor === "string" ? rawSearchParams.executor : undefined,
-    creator: typeof rawSearchParams.creator === "string" ? rawSearchParams.creator : undefined,
-    status: typeof rawSearchParams.status === "string" ? rawSearchParams.status : undefined,
-    page: typeof rawSearchParams.page === "string" ? rawSearchParams.page : undefined,
-    pageSize: typeof rawSearchParams.pageSize === "string" ? rawSearchParams.pageSize : undefined
+    executor: rawSearchParams.executor,
+    creator: rawSearchParams.creator,
+    status: rawSearchParams.status,
+    page: rawSearchParams.page,
+    pageSize: rawSearchParams.pageSize
   });
 
   const result = await listTasks(parsed);
